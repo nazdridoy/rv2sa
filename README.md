@@ -1,185 +1,181 @@
 rv2sa
 =====
-an application and a ruby script which compose and decompose Scripts.rvdata2 of rpgvxace.
-rv2sa: rpgvxaceのGame.exeが読み込むScripts.rvdata2を分解したり生成したりするツールです。
+An application and a Ruby script that compose and decompose Scripts.rvdata2 of RPG Maker VX Ace.
+rv2sa: A tool for decomposing and generating Scripts.rvdata2, which is read by the Game.exe of RPG Maker VX Ace.
 
-## 使い方
-コマンドラインから実行します。
+## Usage
+Execute from the command line.
 
-### 分解
-(Scripts.rvdata2を分解してscriptフォルダに入れる)
+### Decompose
+(Decompose Scripts.rvdata2 and place it in the script folder)
 
 `rv2sa -d Scripts.rvdata2 -o script`
 
-Scripts.rvdata2に含まれるフィルと、Scripts.conf.rbが自動的に生成されます。
+The files included in Scripts.rvdata2 and Scripts.conf.rb will be automatically generated.
 
-
-### 生成
-(scriptフォルダに分解した内容をScripts.rvdata2にまとめる)
+### Compose
+(Combine the contents decomposed into the script folder back into Scripts.rvdata2)
 
 `rv2sa -c script/Scripts.conf.rb -o Scripts.rvdata2`
 
-#### フラグ
+#### Flags
 
-* -f オプションでフラグを指定できます。このフラグはScripts.conf.rbで追加するファイルを制御するために使用できます。
-* `rv2sa -f "debug,test"` とすると Scripts.conf.rb でファイルを追加する際に :debug :test の二つを有効だとして扱います。詳細は**Scripts.conf.rbの表記方法**を参照してください。
+* You can specify flags with the -f option. These flags can be used to control the addition of files in Scripts.conf.rb.
+* By executing `rv2sa -f "debug,test"`, the two flags :debug and :test will be considered active when adding files in Scripts.conf.rb. For more details, refer to **How to write Scripts.conf.rb**.
 
-#### デバッグ情報
+#### Debug Information
 
-* -i オプションを指定すると、rv2saが自動的に変数の定義を行います。
-    * `$rv2sa_path`: rv2saを実行した際のワークディレクトリが代入されます。
-    * `$LOAD_PATH`: rv2saを実行した際の`$LOAD_PATH`が追加されます。
+* By specifying the -i option, rv2sa will automatically define variables.
+    * `$rv2sa_path`: The working directory when rv2sa is executed will be assigned.
+    * `$LOAD_PATH`: The `$LOAD_PATH` when rv2sa is executed will be added.
 
-## Scripts.conf.rbの表記方法
+## How to write Scripts.conf.rb
 
-Rubyスクリプトとして可能な表記はすべて使用できます。
+All expressions possible in a Ruby script can be used.
 
-### ファイルの追加
+### Adding Files
 
-* `add "ファイル名"` と記載することで、Scripts.rvdata2に含めるファイルを追加できます。
-* `"ファイル名"` の部分には、Scripts.conf.rbからの**相対パス**で**拡張子抜き**のファイルパスを記載します。
-* %Q()の記法やヒアドキュメントを使用することができます。ヒアドキュメントを使用する場合は String.unindent を使用することで、行頭のインデントを除外できます（一番浅い行のインデントが0になるように除外します）。
+* By writing `add "filename"`, you can add a file to be included in Scripts.rvdata2.
+* The "filename" part should be the **relative path** from Scripts.conf.rb with the **extension omitted**.
+* You can use %Q() notation or here documents. When using here documents, you can use String.unindent to exclude leading indentation (so that the shallowest line's indentation becomes 0).
 
-### フラグ
+### Flags
 
-* `add "ファイル名", :symbol` とすることで、rv2sa実行時のflagとしてsymbolが指定された場合のみにファイルが追加されるようになります。
-* デバッグ用のファイルを `add "file_for_debug", :debug` という風に指定すると、rv2sa実行時に`-f debug`を指定した場合は追加され、それ以外では追加されないようになります。
-* add時のフラグは`add "file", [:debug, :test]` のように配列で渡すことで複数設定できます。この場合、いずれかのフラグが有効であればファイルは追加されます。
+* By writing `add "filename", :symbol`, the file will only be added if the symbol is specified as a flag when executing rv2sa.
+* For example, if you specify a debug file as `add "file_for_debug", :debug`, it will be added when `-f debug` is specified during rv2sa execution, and not otherwise.
+* Flags during add can be set in multiple by passing an array like `add "file", [:debug, :test]`. In this case, the file will be added if any of the flags are active.
 
-### 別ファイルのインポート
+### Importing Other Files
 
-* `import "ファイル名"` と記載すると、別のファイルをインポートできます。
-* import先、import元にかかわらず、ファイルの中身は、そのファイルからの相対パスで記載してください。
+* By writing `import "filename"`, you can import another file.
+* Regardless of the import source or destination, the contents of the file should be written with a relative path from that file.
 
-## プリプロセス
+## Preprocessing
 
-rv2saを通してScripts.rvdata2を生成する際、特定の記法に基づいて、Scripts.conf.rbに記載された各ファイルの中身を書き換える処理を行います。
-ユーザー環境では使用しないコードを事前に除去するなどの用途に使用できます。
+When generating Scripts.rvdata2 through rv2sa, the contents of each file described in Scripts.conf.rb are rewritten based on specific notation. This can be used to remove code not used in the user environment beforehand.
 
-### 記法
+### Notation
 
-C/C++のプリプロセッサに似た書式で記述します。
+It is described in a format similar to the C/C++ preprocessor.
 
-以下の書式で記載されたものは、全て、プリプロセッサに対する指示（ディレクティブ）と見なされます。
+Anything written in the following format is considered a directive to the preprocessor.
 
 `#identifier arguments`
 
-* `#` と `identifier` は連続しなければなりません。
-* `identifier` と `arguments` の間には一つ以上の空白が必要です。
-* `#` の前には、空白があっても構いません。ただし、`#`の前に空白以外の文字があると、ディレクティブとは見なされません。
+* `#` and `identifier` must be contiguous.
+* There must be at least one space between `identifier` and `arguments`.
+* There may be spaces before `#`. However, if there are non-space characters before `#`, it is not considered a directive.
 
-#### ディレクティブの種類
+#### Types of Directives
 
 ##### #define
 
 * `#define :name`
 * `#define :name, value`
 
-定数を定義します。value を省略した場合は nil を値として設定します。
+Defines a constant. If value is omitted, it is set to nil.
 
-後述する、分岐用のディレクティブや文字列置換に使用できます。
+It can be used for branching directives and string replacement described later.
 
 ##### #undef
 
-* #define で定義された定数を未定義状態にします。
-
+* Undefines a constant defined with #define.
 
 ##### #if-#else-#endif
 
-* `#if`-`#else`-`#end` でくくられた範囲は、条件を満たさなければ、コードから除外されます。
-* 入れ子にすることが可能です。
-* `#ifdef :name` - `#if defined(:name)`の簡易表現です。
-* `#ifndef :name` - `#ifdef :name`が偽のときに真になります。
-* `#elif` - Rubyでいう elsif を意味します。
-* `#else_ifdef :name` - Ruby風に書くと elsif defined :name と同様です
-* `#else ifndef :name` - Ruby風に書くと elsif (! defined :name) と同様です。
+* The range enclosed by `#if`-`#else`-`#end` is excluded from the code if the condition is not met.
+* Nesting is possible.
+* `#ifdef :name` is a shorthand for `#if defined(:name)`.
+* `#ifndef :name` is true when `#ifdef :name` is false.
+* `#elif` is equivalent to Ruby's elsif.
+* `#else_ifdef :name` is equivalent to Ruby's elsif defined :name.
+* `#else ifndef :name` is equivalent to Ruby's elsif (! defined :name).
 
 ##### #warning
 
 * `#warning message`
 
-rv2sa を実行する際に、標準エラーに message を表示します。
+Displays the message to standard error when executing rv2sa.
 
 ##### #error
 
 * `#error message`
 
-rv2sa を失敗させ、標準エラーに message を表示します。
+Causes rv2sa to fail and displays the message to standard error.
 
 ##### #include
 
 * `#include filename`
 
-この行を filename の中身に置き換えます。
+Replaces this line with the contents of filename.
 
-##### その他
+##### Others
 
-ディレクティブのargumentsとして指定可能な表記を示します。
+The following expressions can be specified as arguments for directives.
 
-* `defined(:name)` :name が #defined されていれば true そうでなければ false になります。
-* `defined(:name, value)` name が #defined されていれば、その値を value === で比較した結果を返します。
-* `defined_value(:name)` #defined された値を返します。未定義の場合は nil を返します。
-    * `#if defined_value(:version) < 20` などのように演算子とともに使用することも可能です。
+* `defined(:name)` returns true if :name is #defined, otherwise false.
+* `defined(:name, value)` returns the result of comparing the value of name with value using === if name is #defined.
+* `defined_value(:name)` returns the value of a #defined constant. Returns nil if undefined.
+    * It can be used with operators like `#if defined_value(:version) < 20`.
 
-#### フラグ
+#### Flags
 
-rv2sa を実行する際に指定したフラグは、自動的に `#define` され、値は true に設定されます。
+Flags specified when executing rv2sa are automatically `#define`d with a value of true.
 
-#### 文字列置換
+#### String Replacement
 
-プリプロセスを行う際に、ソースコード上に_[A-Z]_ではじまり、_[A-Z0-9__]_だけで構成される文字列があり、それが `#define` で定義されていれば、その値に置換します。
+During preprocessing, any string in the source code that starts with [A-Z] and consists only of [A-Z0-9_] will be replaced with its value if it is defined with `#define`.
 
-* `#define :VERSION, 10` としておくと、ソースコード上の `VERSION` は `10` に置換されます。
-* ソースコード上の式、コメント、文字列 などを問わず、すべてを機械的に置換します。
-* C/C++の `#define JOIN(a, b) a##b` のような引数を必要とする置換は行えません。
+* If you define `#define :VERSION, 10`, the `VERSION` in the source code will be replaced with `10`.
+* It mechanically replaces everything, regardless of whether it is in expressions, comments, or strings in the source code.
+* It does not perform replacements that require arguments like C/C++'s `#define JOIN(a, b) a##b`.
 
-## rv2saの想定する運用方法
+## Intended Usage of rv2sa
 
-### 初回
-* デフォルトで生成されるScripts.rvdata2を分解し、好きなフォルダに展開しておく。
+### Initial Setup
+* Decompose the default generated Scripts.rvdata2 and expand it into a folder of your choice.
 
-### 更新時
-* ファイラー上でソースコードを追加/編集する。
-* Scripts.rvdata2 を生成してからゲームを起動する。
+### During Updates
+* Add/edit source code using a file manager.
+* Generate Scripts.rvdata2 and then start the game.
 
-# 注意点
-* ファイルの中身はUTF-8で記述してください。
-* Game.exeの起動時にScripts.rvdata2が読み込まれます。エディター起動後にScripts.rvdata2を生成しても問題ありません。(rpgvxace1.02a時点)
-* エディタは起動時にScripts.rvdata2を読み込むと、それ以降はScripts.rvdata2を読み直しません。エディタのスクリプトエディタでスクリプトを編集したい場合は、エディタを起動しなおしてください。(rpgvxace1.02a時点)
-* エディタ上でスクリプトエディタやデータベースなどを開くと、Scripts.rvdata2が再生成されます。このとき生成されるScripts.rvdata2の中身は、エディタが起動時にロードした中身になります。エディタ起動後に外部からScripts.rvdata2を生成し、その後エディタ上でスクリプトエディタを開いた場合、外部から生成したScripts.rvdata2は破棄され、エディタを起動した時点の中身に戻ってしまいます。(rpgvxace1.02a時点)  
-※この問題を回避するには、rvhookを使いGame.exeを起動するたびにrv2saを呼び出すという方法があります。
+# Notes
+* The contents of the files should be written in UTF-8.
+* Scripts.rvdata2 is read when Game.exe starts. It is not a problem to generate Scripts.rvdata2 after the editor starts. (As of RPG Maker VX Ace 1.02a)
+* The editor does not reread Scripts.rvdata2 after it is loaded at startup. If you want to edit scripts in the editor's script editor, restart the editor. (As of RPG Maker VX Ace 1.02a)
+* Opening the script editor or database in the editor will regenerate Scripts.rvdata2. The contents of the generated Scripts.rvdata2 will be what was loaded when the editor started. If you generate Scripts.rvdata2 externally after the editor starts and then open the script editor in the editor, the externally generated Scripts.rvdata2 will be discarded and revert to the contents at the time the editor started. (As of RPG Maker VX Ace 1.02a)  
+  * To avoid this issue, you can use rvhook to call rv2sa every time Game.exe is started.
 
-# 更新履歴
-* 2.3.0 -i オプションでデバッグ情報を追加できるようにした。
-* 2.2.0 プリプロセッサを追加。
-* 2.1.0 `import`を追加。
-* 2.0.0 定義ファイルをScripts.conf.rbに変更すると共にスクリプトの内容を刷新。
-* 1.3.0 -l オプションを設けた。
-* 1.2.0	ファイル名を　ファイル名_index_id.rb　に変更した。
-* 1.1.0	生成時のスクリプトごとのIDを通し番号に変更した。
-* 1.0.0	最初のバージョン
-
+# Changelog
+* 2.3.0 Added the ability to add debug information with the -i option.
+* 2.2.0 Added a preprocessor.
+* 2.1.0 Added `import`.
+* 2.0.0 Changed the definition file to Scripts.conf.rb and revamped the script content.
+* 1.3.0 Added the -l option.
+* 1.2.0 Changed the file name to filename_index_id.rb.
+* 1.1.0 Changed the script ID to a serial number during generation.
+* 1.0.0 Initial version
 
 # LICENSE
 
 ## rv2sa
 
-rv2saのrubyスクリプトは[NYSL](https://github.com/ctmk/rv2sa/blob/master/LICENSE)で公開されています。
+The Ruby script of rv2sa is released under [NYSL](https://github.com/ctmk/rv2sa/blob/master/LICENSE).
 
 ## rv2sa.exe
 
-rv2sa.exeはrv2saをocraでexe化したものです。
-内包する全てのソフトウェアのライセンス条件に従って使用できます。
+rv2sa.exe is an exe version of rv2sa created with ocra.
+It can be used in accordance with the license conditions of all the software it contains.
 
 ### Ruby
 
-Ruby は Ruby'sライセンス で公開されています。
+Ruby is released under Ruby's license.
 
 https://www.ruby-lang.org/ja/
 
 ### ocra
 
-ocra は MIT License で公開されています。 
+ocra is released under the MIT License.
 
 https://github.com/larsch/ocra
 
