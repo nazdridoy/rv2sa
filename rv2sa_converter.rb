@@ -78,7 +78,7 @@ class Rv2sa::Converter::Composition
 
   end
 
-  # .conf.rb ‚Åƒtƒ@ƒCƒ‹’è‹`‚ğs‚¤ŠÂ‹«
+  # .conf.rb ï¿½Åƒtï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½`ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½Â‹ï¿½
   class Definition
     attr_reader :flags
     attr_reader :files
@@ -95,7 +95,7 @@ class Rv2sa::Converter::Composition
       @imports.empty? ? "" : (@imports.join("/") + "/")
     end
     
-    # ƒtƒ@ƒCƒ‹‚Ì’Ç‰Á
+    # ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì’Ç‰ï¿½
     # @param [Array|String] filelist
     # @param [Array<Symbol>] flags
     def add(filelist, flags = [])
@@ -107,7 +107,7 @@ class Rv2sa::Converter::Composition
       @files += filelist.collect {|file| path + file }
     end
 
-    # •Ê‚ÌScripts.conf.rb‚©‚ç“Ç‚İ‚Ş
+    # ï¿½Ê‚ï¿½Scripts.conf.rbï¿½ï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ï¿½
     # @param [Array|String] filelist
     # @param [Array<Symbol>] flags
     def import(filelist, flags = [])
