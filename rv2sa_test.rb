@@ -2,7 +2,7 @@
 # coding: utf-8
 
 =begin
-  rv2saのテストを実行する
+  Execute tests for rv2sa
 =end
 
 require "test/unit"
