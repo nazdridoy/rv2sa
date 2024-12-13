@@ -52,10 +52,27 @@ class Rv2sa::PreProcessor
 
   def process_command(cmd, args)
     cmd = cmd && cmd.intern
+    
+    # Special directives that need specific handling
+    special_directives = [:if, :ifdef, :ifndef, :else, :elif, :else_ifdef, :else_ifndef, :endif, :include, :define, :undef, :warning, :error]
+    
+    # If it's not a special directive, add it to Directive module dynamically
+    unless special_directives.include?(cmd) || Directive.method_defined?(cmd)
+      Directive.module_eval do
+        define_method(cmd) do |args_str|
+          nil # Ignore unknown directives
+        end
+      end
+    end
+
     raise SyntaxError, "Unknown directive '##{cmd}'" unless cmd && Directive.method_defined?(cmd)
 
     begin
-      args = eval("[#{args}]") || []
+      if special_directives.include?(cmd)
+        args = eval("[#{args}]") || []
+      else
+        args = [args] # Pass raw args for non-special directives
+      end
     rescue StandardError, SyntaxError => e
       raise SyntaxError, "Invalid arguments '(#{args})' for '##{cmd}', #{e}"
     end
