@@ -2,7 +2,7 @@
 # coding: utf-8
 
 =begin
-  Scripts.rvdata2の分解/結合を行う。
+  Performs decomposition/composition of Scripts.rvdata2.
 =end
 
 Version = "2.3.0"
